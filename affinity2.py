@@ -1,32 +1,27 @@
 import subprocess
-import re
 import networkx
-import itertools
-import collections
+from collections import Counter
+from itertools import combinations
 
-file_regex = re.compile("\d+\s+\d+\s*([\w/.]+)$")
 
-counter = collections.Counter()
+from gitlogparser import GitLogParser
+
 
 # Do GIT LOG
-with subprocess.Popen(['git','log','--numstat'], stdout=subprocess.PIPE, universal_newlines=true) as command:
-    files_in_commit = []
+edge_collector = Counter()
+parser = GitLogParser()
+with subprocess.Popen(['git','log','--numstat'], stdout=subprocess.PIPE, universal_newlines=True) as command:
+    for commit in parser.feed(command.stdout):
+        for edge in combinations(commit, 2):
+            edge_collector[edge]+=1
 
-    # Collect file names in the current commit
-    for line in command.communicate():
-        m = re.match(line)
-        if m:
-            filename = m.group(1)
-            files_in_commit.append(filename)
-        else:
-            # End of commit, so increment node count for each file pair
-            if files_in_commit:
-                for pair in itertools.combinations(sorted(files_in_commit),2):
-                    counter[pair] +=1
-            files_in_commit=[]
+g = networkx.Graph()
+for edge,weight in edge_collector.items():
+    g.add_edge(edge, weight)
+
+
 
 # Okay, we have nodes and weights in the files_in_commits, so convert to a graph
-g = networkx.Graph()
 # g.add_edges_from(  ... something cool here .... )
 # ... and then do something cool
             
