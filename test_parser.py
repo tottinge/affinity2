@@ -30,9 +30,7 @@ Date:   Fri Mar 2 00:31:39 2018 -0600
         "CompletionTest.java",
     ]
 
-
-    sample2 = sample + """
-    
+    sample2 = """    
 commit 714d0440ca00bbf33540e027bfeffcf6227a76d4
 Author: Tim Ottinger <tottinge@industriallogic.com>
 Date:   Thu Mar 1 15:30:40 2018 -0600
@@ -43,11 +41,15 @@ Date:   Thu Mar 1 15:30:40 2018 -0600
 16      4       src/main/java/com/industriallogic/action/admin/WorkshopSetupAction.java
 18      5       src/templates/admin/workshopMgmt.stg
 """.split("\n")
+
+
     sample2_files = [
         "WorkshopMgmtAdmin.java",
         "WorkshopSetupAction.java",
         "workshopMgmt.stg"
     ]
+
+    combined = sample + sample2
 
     def test_sample(self):
         subject = GitLogParser()
@@ -65,11 +67,18 @@ Date:   Thu Mar 1 15:30:40 2018 -0600
 
     def test_two_commits(self):
         subject = GitLogParser()
-        result = [ commit for commit in subject.feed(self.sample2)]
+        result = [commit for commit in subject.feed(self.combined)]
         self.assertEqual(2, len(result), "Should be two commits [%s]" % result)
         [_, commit] = result;
         commit_files = self.raw_filenames_from(commit)
         for filenames in self.sample2_files:
             self.assertIn(filenames, commit_files)
+
+    def test_feeding_a_line_at_a_time(self):
+        subject = GitLogParser()
+        for line in self.sample2:
+            subject.feed(line)
+
+
 
 
