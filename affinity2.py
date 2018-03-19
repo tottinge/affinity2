@@ -2,6 +2,7 @@ import subprocess
 import networkx
 from collections import Counter
 from itertools import combinations
+import lineinput
 
 from gitlogparser import GitLogParser
 
@@ -37,6 +38,9 @@ def main(source):
     p = GitLogParser()
     g = build_graph(p.feed(source))
     average_strength = sum(weight for (_,_,weight) in g.edges(data='weight'))/g.number_of_edges();
+    if average_strength < 4:
+        print("Too little data or too little connectedness for this algorithm to be meaningful");
+        return []
     lower_limit = average_strength  # Wild approximation
     trim_graph(g, lower_limit or 1)
     components = networkx.connected_components(g)
@@ -49,4 +53,4 @@ def main(source):
     return components
 
 if __name__ == '__main__':
-    g = main(open("gitlog.ascii", "r"))
+    g = main(open("gitlog.ascii","r"))
