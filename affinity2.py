@@ -2,7 +2,7 @@ import subprocess
 import networkx
 from collections import Counter
 from itertools import combinations
-import lineinput
+import fileinput
 
 from gitlogparser import GitLogParser
 
@@ -37,12 +37,19 @@ def trim_graph(graph, lower_limit):
 def main(source):
     p = GitLogParser()
     g = build_graph(p.feed(source))
-    average_strength = sum(weight for (_,_,weight) in g.edges(data='weight'))/g.number_of_edges();
-    if average_strength < 4:
+    weights = [weight for (_,_,weight) in g.edges(data='weight')]
+    average_strength = sum(weights)/g.number_of_edges();
+    max_strength = max(weights)
+    print("max weight=", max_strength)
+    print("average = ", average_strength)
+    print("")
+
+    lower_limit = int(max_strength * .33) or (average_strength*1.5) or 1
+    if lower_limit < 2:
         print("Too little data or too little connectedness for this algorithm to be meaningful");
         return []
-    lower_limit = average_strength  # Wild approximation
-    trim_graph(g, lower_limit or 1)
+    print("Using lower limit of ", lower_limit)
+    trim_graph(g, lower_limit)
     components = networkx.connected_components(g)
     for (seq, subgroup) in enumerate( sorted(components, key=lambda x: len(x), reverse=True) ):
         if len(subgroup) < 5:
@@ -53,4 +60,4 @@ def main(source):
     return components
 
 if __name__ == '__main__':
-    g = main(open("gitlog.ascii","r"))
+    g = main(fileinput.input())
