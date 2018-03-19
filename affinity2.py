@@ -46,7 +46,7 @@ def main(source):
         print("Sequence: %d" % seq)
         for item in sorted(subgroup):
             print(" "*4, item)
-
+    return components
 
 if __name__ == '__main__':
-    main(open("gitlog.ascii", "r"))
+    g = main(open("gitlog.ascii", "r"))
